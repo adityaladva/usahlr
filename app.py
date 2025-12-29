@@ -2,21 +2,28 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 
+# ------------------ PAGE SETUP ------------------
 st.set_page_config(page_title="USA HLR Demo", layout="centered")
 
-st.markdown("""
-## USA HLR / NPA-NXX Validation Demo  
-**ASTRA CONSULTANCY | INFURA TECHNOLOGIES**  
+st.markdown(
+    """
+    <h2>USA HLR / NPA-NXX Validation Demo</h2>
+    <p><b>ASTRA CONSULTANCY | INFURA TECHNOLOGIES</b></p>
+    <p>Free Phone Validation Product Sample</p>
+    <hr>
+    """,
+    unsafe_allow_html=True
+)
 
-Free Product Sample – USA Phone Number Validation  
----
-""")
+# ------------------ INPUTS (LIKE SMTP APP) ------------------
+phone_number = st.text_input(
+    "Enter USA Phone Number",
+    placeholder="2031212212"
+)
 
-# INPUT
-number = st.text_input("Enter USA Phone Number", placeholder="2031212212")
-
-def lookup_number(num):
-    url = f"https://puck.nether.net/npa-nxx/new-lookup.cgi?number={num}"
+# ------------------ LOOKUP FUNCTION ------------------
+def lookup_number(number):
+    url = f"https://puck.nether.net/npa-nxx/new-lookup.cgi?number={number}"
     r = requests.get(url, timeout=10)
 
     soup = BeautifulSoup(r.text, "html.parser")
@@ -36,37 +43,39 @@ def lookup_number(num):
             result["NPA-NXX"] = line.replace("NPA-NXX", "").strip()
 
         elif line.startswith("City:"):
-            value = line.replace("City:", "").strip()
-            if value:
-                result["City"] = value
+            val = line.replace("City:", "").strip()
+            if val:
+                result["City"] = val
 
         elif line.startswith("Telco:"):
-            value = line.replace("Telco:", "").strip()
-            if value:
-                result["Carrier"] = value
+            val = line.replace("Telco:", "").strip()
+            if val:
+                result["Carrier"] = val
 
     return result
 
-# ACTION
+# ------------------ ACTION BUTTON ------------------
 if st.button("Validate Number"):
-    if not number:
+    if not phone_number:
         st.warning("Please enter a phone number")
     else:
         with st.spinner("Validating number..."):
-            data = lookup_number(number)
+            data = lookup_number(phone_number)
 
-        st.success("Validation Complete")
+        st.success("Validation Result")
 
         st.write("**Country:**", data["Country"])
         st.write("**NPA-NXX:**", data["NPA-NXX"])
         st.write("**City:**", data["City"])
-        st.write("**Carrier:**", data["Carrier"])
+        st.write("**Carrier / Telco:**", data["Carrier"])
 
-        st.markdown("""
-        ---
-        **A FREE PRODUCT BY ADL | ASTRA CONSULTANCY | INFURATECHNOLOGIES**  
+        st.markdown(
+            """
+            ---
+            **A FREE PRODUCT BY ADL | ASTRA CONSULTANCY | INFURATECHNOLOGIES**
 
-        For higher volume HLR, phone validation, or enterprise use cases,  
-        contact us on LinkedIn:  
-        https://www.linkedin.com/in/aditya-ladva/
-        """)
+            For higher volume phone validation, HLR lookups,  
+            or enterprise integrations, contact us on LinkedIn:  
+            https://www.linkedin.com/in/aditya-ladva/
+            """
+        )
