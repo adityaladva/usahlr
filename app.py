@@ -1,3 +1,4 @@
+import sys
 from urllib.request import Request, urlopen
 from urllib.parse import urlencode
 from html.parser import HTMLParser
@@ -17,12 +18,12 @@ class LookupParser(HTMLParser):
             self.carrier = data.replace("Telco:", "").strip()
 
 
-def startup_banner():
+def banner():
     print("========================================")
     print(" PHONE NUMBER LOOKUP TOOL (USA)")
-    print(" ADL APPLICATIONS PREVIEW")
+    print(" Powered by puck.nether.net")
     print(" A FREE PRODUCT BY ADL | ASTRA CONSULTANCY | INFURATECHNOLOGIES")
-    print("========================================\n")
+    print("========================================")
 
 
 def lookup_number(phone_number):
@@ -52,32 +53,36 @@ def lookup_number(phone_number):
     }
 
 
-if __name__ == "__main__":
-    try:
-        startup_banner()
+# ================= MAIN =================
+try:
+    banner()
 
+    # COMBINED INPUT HANDLING
+    if len(sys.argv) > 1:
+        number = sys.argv[1].strip()
+    else:
         number = input("Enter phone number (digits only): ").strip()
 
-        if not number.isdigit():
-            print("ERROR: Phone number must contain digits only")
-        else:
-            result = lookup_number(number)
+    if not number.isdigit():
+        raise ValueError("Phone number must contain digits only")
 
-            print("\nSTREAMLABS LOOKUP RESULT")
-            print("------------------------")
-            print(f"Number  : {result['number']}")
-            print(f"City    : {result['city']}")
-            print(f"Carrier : {result['carrier']}")
+    result = lookup_number(number)
 
-            print("\n----------------------------------------")
-            print("A FREE PRODUCT BY ADL | ASTRA CONSULTANCY | INFURATECHNOLOGIES")
-            print("For higher volume usage, contact us on LinkedIn:")
-            print("https://www.linkedin.com/in/aditya-ladva/")
-            print()
-            print("For proper tool development or custom product orders,")
-            print("mail us at: productbyadl@gmail.com")
-            print("or DM us on LinkedIn.")
-            print("----------------------------------------")
+    print("\nSTREAMLABS LOOKUP RESULT")
+    print("------------------------")
+    print(f"Number  : {result['number']}")
+    print(f"City    : {result['city']}")
+    print(f"Carrier : {result['carrier']}")
 
-    except Exception as e:
-        print("Lookup failed:", str(e))
+    print("\n----------------------------------------")
+    print("A FREE PRODUCT BY ADL | ASTRA CONSULTANCY | INFURATECHNOLOGIES")
+    print("For higher volume usage, contact us on LinkedIn:")
+    print("https://www.linkedin.com/in/aditya-ladva/")
+    print()
+    print("For proper tool development or custom product orders,")
+    print("mail us at: productbyadl@gmail.com")
+    print("or DM us on LinkedIn.")
+    print("----------------------------------------")
+
+except Exception as e:
+    print("ERROR:", str(e))
