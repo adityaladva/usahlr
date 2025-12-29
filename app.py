@@ -1,63 +1,37 @@
-from urllib.request import Request, urlopen
-from urllib.parse import urlencode
-from html.parser import HTMLParser
+import requests
+from bs4 import BeautifulSoup
 
+def lookup_number(number):
+    url = f"https://puck.nether.net/npa-nxx/new-lookup.cgi?number={number}"
+    r = requests.get(url, timeout=10)
 
-class LookupParser(HTMLParser):
-    def __init__(self):
-        super().__init__()
-        self.city = None
-        self.carrier = None
+    soup = BeautifulSoup(r.text, "html.parser")
+    text = soup.get_text(separator="\n")
 
-    def handle_data(self, data):
-        data = data.strip()
-        if data.startswith("City:"):
-            self.city = data.replace("City:", "").strip()
-        elif data.startswith("Telco:"):
-            self.carrier = data.replace("Telco:", "").strip()
-
-
-def lookup_number(phone_number):
-    url = "https://puck.nether.net/npa-nxx/new-lookup.cgi?" + urlencode({"number": phone_number})
-
-    headers = {
-        "User-Agent": "Mozilla/5.0 (compatible; StreamlabsChatbot/1.0)"
+    data = {
+        "number": number,
+        "country": "USA" if "USA" in text else "UNKNOWN",
+        "npa_nxx": None,
+        "city": None,
+        "carrier": None,
     }
 
-    req = Request(url, headers=headers)
-    html = urlopen(req, timeout=10).read().decode("utf-8", "ignore")
+    for line in text.splitlines():
+        line = line.strip()
 
-    parser = LookupParser()
-    parser.feed(html)
+        if line.startswith("NPA-NXX"):
+            data["npa_nxx"] = line.replace("NPA-NXX", "").strip()
 
-    return parser.city or "UNKNOWN", parser.carrier or "UNKNOWN"
+        elif line.startswith("City:"):
+            data["city"] = line.replace("City:", "").strip() or "NOT AVAILABLE"
 
+        elif line.startswith("Telco:"):
+            data["carrier"] = line.replace("Telco:", "").strip() or "NOT AVAILABLE"
 
-def Init():
-    pass
-
-
-def Execute(data):
-    if not data.IsChatMessage():
-        return
-
-    msg = data.Message.strip()
-
-    # COMMAND = !<10-digit-number>
-    if not (msg.startswith("!") and len(msg) == 11 and msg[1:].isdigit()):
-        return
-
-    phone_number = msg[1:]
-
-    city, carrier = lookup_number(phone_number)
-
-    data.SendChatMessage(
-        "📞 Phone Lookup\n"
-        f"Number: {phone_number} | City: {city} | Carrier: {carrier}\n"
-        "A FREE PRODUCT BY ADL | ASTRA CONSULTANCY | INFURATECHNOLOGIES\n"
-        "Custom tools: productbyadl@gmail.com | linkedin.com/in/aditya-ladva"
-    )
+    return data
 
 
-def Tick():
-    pass
+# DEMO
+if __name__ == "__main__":
+    result = lookup_number("2031212212")
+    print(result)
